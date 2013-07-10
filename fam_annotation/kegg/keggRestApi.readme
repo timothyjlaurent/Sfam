@@ -1,0 +1,9 @@
+This is how the kegg tables are generated :
+
+for a list of all kegg pathways
+wget http://rest.kegg.jp/list/pathway
+
+for a list of all mappings ko to pathways
+wget http://rest.kegg.jp/link/pathway/ko
+
+
