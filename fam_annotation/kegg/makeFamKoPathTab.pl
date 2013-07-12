@@ -11,7 +11,7 @@ our $debug = 0 ;
 
 my $hitTable = "/mnt/data/work/pollardlab/laurentt/kegFamFasta/sfamKoEcTab.txt.gz";
 my $fastaBaseFolder = "/mnt/data/home/sharpton/pollardlab/sharpton/20130401";
-my $outfile = "./famToKoTab.txt";
+my $outfile = "./famToKoPathTab.txt";
 open OUT, ">$outfile";
 my $pathTab = "keggPathways.txt";
 my $koToPathTab = "keggKoToPathway.txt";
@@ -21,19 +21,19 @@ my $pathToDescHash = makePathToDescHash( path=>$pathTab );
 
 my $koToPathHash = makeKoToPathHash( path=>$koToPathTab );
 
-fixTable( tab=>"./famToKoTab.txt.gz", koToPathHash=>$koToPathHash, pathToDescHash=>$pathToDescHash);
+##fixTable( tab=>"./famToKoTab.txt.gz", koToPathHash=>$koToPathHash, pathToDescHash=>$pathToDescHash);
 
-die;
+##die;
 
 my $famSizeHash ;
-$famSizeHash = countFamMembers($fastaBaseFolder);
-store \%{$famSizeHash}, 'famSize.hash';
-# $famSizeHash = retrieve('famSize.hash');
+#$famSizeHash = countFamMembers($fastaBaseFolder);
+#store \%{$famSizeHash}, 'famSize.hash';
+ $famSizeHash = retrieve('famSize.hash');
 
 my $famKOhash;
-$famKOhash = makefamKOhash($hitTable); 
-store \%{$famKOhash}, 'famKO.hash';
-# $famKOhash = retrieve('famKO.hash');
+#$famKOhash = makefamKOhash($hitTable); 
+#store \%{$famKOhash}, 'famKO.hash';
+$famKOhash = retrieve('famKO.hash');
 
 
 # die;
@@ -64,22 +64,22 @@ for my $fam (@fams){
 		 $row .= @members."\t";
 		 $row .= $famSizeHash->{$fam}."\t";
 		 $row .= @members/$famSizeHash->{$fam}."\t";
-		if (defined( $koToPathHash->{$ko} )) {
+		 if (defined( $koToPathHash->{$ko} )) {
 			my @path = sort(keys($koToPathHash->{$ko}));
 			$row .= join(',', @path)."\t";
 			my @pathDesc;
 			for( my $i = 0 ; $i < @path ; $i++ ){
 				my $path = $path[$i];
 				my @desc = keys($pathToDescHash->{$path});
-				print $desc[0]."\n";
+                ##print $desc[0]."\n";
 				$pathDesc[$i] = $desc[0];
 			}
-			$row .= "\t".join(',',@pathDesc)."\n";
+			$row .= join(',',@pathDesc)."\n";
 		} else {
 			$row .= "NA\tNA\n";
 		}
 		
-		print $row;
+        #print $row;
 		print OUT $row;
 	}
 }
@@ -225,7 +225,7 @@ sub makeKoToPathHash{
 			
 			my @fields = split( '\t', $line );
 			$koToPathHash->{$fields[0]}->{$fields[1]} = 1;
-			print "$line\t".$fields[0]."\t".$fields[1]."\n"; 
+            ##	print "$line\t".$fields[0]."\t".$fields[1]."\n"; 
 		} 
 	}
 	return $koToPathHash;
@@ -242,7 +242,7 @@ sub makePathToDescHash{
 		chomp( $line );
 		my @fields = split ( '\t' , $line );
 		$pathToDescHash->{$fields[0]}->{$fields[1]} = 1;
-		print "$line\t".$fields[0]."\t".$fields[1]."\n";	
+        #print "$line\t".$fields[0]."\t".$fields[1]."\n";	
 	}
 	return $pathToDescHash;
 }
