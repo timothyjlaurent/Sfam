@@ -51,9 +51,11 @@ sub makeFamStatHash{
     my $famHash = {};
     open IN, "zmore $intab |" || die "error opening $intab $!";
     while (my $line =  <IN> ){
-       if($header){
+        print "line".$line."\n" if ($verbose);
+        if($header){
            $header = 0;
         } else {
+            <STDIN> if($verbose);
             chomp ($line);
             my @fields = split("\t" , $line );
             if ($fields[8] >= $cutoff) {
