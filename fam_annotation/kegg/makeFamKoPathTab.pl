@@ -11,10 +11,15 @@ our $debug = 0 ;
 
 my $hitTable = "/mnt/data/work/pollardlab/laurentt/kegFamFasta/sfamKoEcTab.txt.gz";
 my $fastaBaseFolder = "/mnt/data/home/sharpton/pollardlab/sharpton/20130401";
-my $outfile = "./famToKoPathTab.txt";
-open OUT, ">$outfile";
+my $outfile = "famKoPathTab.txt";
 my $pathTab = "keggPathways.txt";
 my $koToPathTab = "keggKoToPathway.txt";
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time); 
+my $curTime = $year + 1900 ."-".( $mon + 1)  ."-". $mday . "-" . $hour . "-" . $min . "-" . $sec ."-";
+print "curtime:\t$curTime\n";
+$outfile = $curTime.$outfile;
+
+open OUT, ">$outfile";
 
 
 my $pathToDescHash = makePathToDescHash( path=>$pathTab );
@@ -40,48 +45,57 @@ $famKOhash = retrieve('famKO.hash');
 
 my $header = "famid\tkoID\tEC\tDESC\tMembers\thitPerMember\tnumHits\tfamSize\tproportion\tpathway\tpathDescription\n";
 print OUT $header;
-my @fams = sort (keys(%$famKOhash));
+##my @fams = sort (keys(%$famKOhash));
+my @fams = sort { $a <=> $b  } (keys(%$famSizeHash));
 
 for my $fam (@fams){
 	warn Dumper ($famKOhash->{$fam}) if ($debug);
 	# readline;
 	print $fam."\n" if ($debug);
-	my @kos = sort(keys($famKOhash->{$fam}));
-	for my $ko (@kos){
-		print $ko."\n";
-		my $row = $fam."\t";
-		$row .= $ko."\t";
-		$row .= $famKOhash->{$fam}->{$ko}->{EC}."\t";
-		$row .= $famKOhash->{$fam}->{$ko}->{DESC}."\t";
-		my @members = sort(keys($famKOhash->{$fam}->{$ko}->{MEM}));
-		my $members = join(',', @members);
-		 $row .= $members."\t";
-		my @numHits;
-		for (my $i = 0 ; $i < @members ; $i++){
-			$numHits[$i] = $famKOhash->{$fam}->{$ko}->{MEM}->{$members[$i]};
-		}
-		 $row .= join(',', @numHits)."\t";
-		 $row .= @members."\t";
-		 $row .= $famSizeHash->{$fam}."\t";
-		 $row .= @members/$famSizeHash->{$fam}."\t";
-		 if (defined( $koToPathHash->{$ko} )) {
-			my @path = sort(keys($koToPathHash->{$ko}));
-			$row .= join(',', @path)."\t";
-			my @pathDesc;
-			for( my $i = 0 ; $i < @path ; $i++ ){
-				my $path = $path[$i];
-				my @desc = keys($pathToDescHash->{$path});
-                ##print $desc[0]."\n";
-				$pathDesc[$i] = $desc[0];
-			}
-			$row .= join(',',@pathDesc)."\n";
-		} else {
-			$row .= "NA\tNA\n";
-		}
-		
+    if( defined ($famKOhash->{$fam})){
+        my @kos = sort(keys($famKOhash->{$fam}));
+        for my $ko (@kos){
+             my $row; 
+            print $ko."\n";
+            $row = $fam."\t";
+            $row .= $ko."\t";
+            $row .= $famKOhash->{$fam}->{$ko}->{EC}."\t";
+            $row .= $famKOhash->{$fam}->{$ko}->{DESC}."\t";
+            my @members = sort(keys($famKOhash->{$fam}->{$ko}->{MEM}));
+            my $members = join(',', @members);
+             $row .= $members."\t";
+            my @numHits;
+            for (my $i = 0 ; $i < @members ; $i++){
+                $numHits[$i] = $famKOhash->{$fam}->{$ko}->{MEM}->{$members[$i]};
+            }
+             $row .= join(',', @numHits)."\t";
+             $row .= @members."\t";
+             $row .= $famSizeHash->{$fam}."\t";
+             $row .= @members/$famSizeHash->{$fam}."\t";
+             if (defined( $koToPathHash->{$ko} )) {
+                my @path = sort(keys($koToPathHash->{$ko}));
+                $row .= join(',', @path)."\t";
+                my @pathDesc;
+                for( my $i = 0 ; $i < @path ; $i++ ){
+                    my $path = $path[$i];
+                    my @desc = keys($pathToDescHash->{$path});
+                    ##print $desc[0]."\n";
+                    $pathDesc[$i] = $desc[0];
+                }
+                $row .= join(',',@pathDesc)."\n";
+            } else {
+                $row .= "NA\tNA\n";
+            }
+            
+            #print $row;
+            print OUT $row;
+        }
+    } else {
+       
+        my  $row= "$fam\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";
         #print $row;
-		print OUT $row;
-	}
+        print OUT $row;
+    }
 }
 close (OUT);
 system("gzip $outfile");
